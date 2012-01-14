@@ -1,4 +1,5 @@
 import Data.List
+import System.Random
 
 --import Data.Ord
 -- problem 8 - compressing lists
@@ -135,14 +136,48 @@ range x y
   | x > y = reverse [y..x]
             
             
--- Problem 23 extract a given numbers of randomly selected elements from a list
--- TBD later, requires monads and other advanced stuff
+-- Problem 23 extract a given number of randomly selected elements from a list
 
--- Problem 24 Lotto: Draw N different random numbers from the set 1..M. 
--- TBD later, see above
+-- Make it use the number of extracted elements as a seed. We could add an extra
+-- argument as an explicit seed
+
+seeds s = (randoms $ mkStdGen s)::[Int]
+
+extractNRandom :: (Eq a) => [a] -> Int -> [a]
+extractNRandom l n = go rands [] n l
+               where
+                rands = take n $ seeds n
+                go :: (Eq a) => [Int] -> [a] -> Int -> [a] -> [a]
+                go r t i s 
+                   | i == 0 = t
+                   | s == [] = t
+                   | otherwise = let 
+                                     e = (!!) s $ abs $ head r `rem` (fromIntegral $ length s)
+                                 in
+                                     go  (tail r)  (e:t)  (i - 1) $ delete e s
+                                                     
+
+
+-- Problem 24 Lotto: Draw N different random numbers from the set 1..M. Seeding
+-- as above
+
+extractNRandom1M :: Int -> Int -> [Int]
+extractNRandom1M n m 
+                 | n == 0 = []
+                 | otherwise = go rands n [1..m]
+                   where 
+                         rands = take n $ seeds n
+                         go :: [Int] -> Int -> [Int] -> [Int]
+                         go _ 0 _ = []
+                         go r count src = (:) e $ go (tail r) (count - 1) $ delete e src
+                            where
+                                e = (!!) src $ abs $ head r `rem` (fromIntegral $ length src)           
+
 
 -- Problem 25 Generate a random permutation of the elements of a list. 
--- TBD later, see above
+permutation :: [a] -> [a]
+permutation xs = map ((xs!!) . (flip(-) $ 1)) $ extractNRandom1M n n
+            where n = length xs
 
 -- Problem 26 Generate the combinations of K distinct objects chosen from the N 
 -- elements of a list 
@@ -170,14 +205,14 @@ lenCount n (x:xs)
   | n == length x = 1 + lenCount n xs
   | n /= length x = 0
 
--- under work, currently broken
-lfsort :: [[a]] -> [[a]]
-lfsort xs = concatMap snd $
-            sortBy (\ (x,_) (y,_) -> compare x y) $
-            groupBy (\ (x,_) (y,_) x==y) $
-            zip (map length ys) ys
-              where ys = lsort xs
-                    -- lengthPack :: [[a]] -> [(Int, [[a]])]
-                    -- lengthPack x = [(length x, [x])]
-                    -- lengthPack (x:xs) = (lenCount (length x) xs, take (lenCount(length x) xs) xs): lengthPack (drop (lenCount(length x) xs) (x:xs))
+-- -- under work, currently broken
+-- lfsort :: [[a]] -> [[a]]
+-- lfsort xs = concatMap snd $
+--             sortBy (\ (x,_) (y,_) -> compare x y) $
+--             groupBy (\ (x,_) (y,_) x==y) $
+--             zip (map length ys) ys
+--               where ys = lsort xs
+--                     -- lengthPack :: [[a]] -> [(Int, [[a]])]
+--                     -- lengthPack x = [(length x, [x])]
+--                     -- lengthPack (x:xs) = (lenCount (length x) xs, take (lenCount(length x) xs) xs): lengthPack (drop (lenCount(length x) xs) (x:xs))
                                       

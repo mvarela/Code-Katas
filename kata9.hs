@@ -84,6 +84,7 @@ threeForTwo :: Item -> Float -> Float
 threeForTwo i q = (2*(fromIntegral $ div (floor q)  3) + (fromIntegral $ mod (floor q) 3)) * unitPrice i
 
 -- shorthand constructor for RegisterItems
+qri :: Item -> Float -> RegisterItem
 qri i q = RegisterItem i q
 
 -- testing lists
